@@ -2,7 +2,7 @@
 
 Encrypted `.env` variables.
 
-Uses an RSA key pair to encrypt and decrypt environment variable configuration. Defaults to users ssh key.
+Uses an RSA key pair to encrypt and decrypt environment variable configuration. Defaults to the users ssh key.
 
 ## Usage
 
