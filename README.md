@@ -28,10 +28,19 @@ $ cat .senv | senv --decrypt > .env
 ## Use Cases
 
 * Encrypting personal development credentials on an open source repository.
-* Encrypting CI credentials on an open source or private repository.
-* Encrypting deployment credentials on a private repository.
+* Encrypting CI credentials.
+* Encrypting deployment credentials for private repository.
 
 Its handy to encrypt environment variables with the same single use deploy key thats associated with the repository.
+
+
+## Installation
+
+`senv` is currently not published yet. Best way to grab the latest version is with curl.
+
+``` sh
+$ curl -O https://raw.github.com/josh/senv/master/senv
+```
 
 
 ## Format
