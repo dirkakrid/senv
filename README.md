@@ -57,6 +57,7 @@ Any line that can not be decrypted should simply be ignored. This allows data to
 
 * [Foreman](https://github.com/ddollar/foreman)
 * Ruby [dotenv](https://github.com/bkeepers/dotenv)
+* Travis CI [encrypt](https://github.com/travis-ci/travis#encrypt) command
 
 
 ## License
