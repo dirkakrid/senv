@@ -29,6 +29,15 @@ rescue OptionParser::InvalidOption
   abort optparse.to_s
 end
 
+if STDIN.tty? && ARGF.path == "-"
+  if options[:file] && File.exist?(options[:file])
+    input = File.open(options[:file], 'r')
+  else
+    abort optparse.to_s
+  end
+else
+  input = ARGF
+end
 
 ENV['SENV_KEY'] ||= `ssh-add -l`.lines.first.split(" ")[2]
 
@@ -40,16 +49,6 @@ if File.exist?(ENV['SENV_KEY'])
   key = OpenSSL::PKey::RSA.new(File.read(ENV['SENV_KEY']), password)
 else
   abort "SENV_KEY=#{ENV['SENV_KEY']} does not exist"
-end
-
-if STDIN.tty? && ARGF.path == "-"
-  if options[:file] && File.exist?(options[:file])
-    input = File.open(options[:file], 'r')
-  else
-    abort optparse.to_s
-  end
-else
-  input = ARGF
 end
 
 if options[:encrypt]

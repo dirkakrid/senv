@@ -16,7 +16,7 @@ load test_helper
 
 @test "invoking senv with nonexistent SENV_KEY errors" {
   export SENV_KEY="/tmp/notansshkey"
-  run senv
+  run senv -e "${BATS_TEST_DIRNAME}/.env"
   [ "$status" -eq 1 ]
   [ "${lines[0]}" = "SENV_KEY=/tmp/notansshkey does not exist" ]
 }
