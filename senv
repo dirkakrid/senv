@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-set -e
+# set -e
 
 usage() {
-  echo "Usage: senv [-e | -d]"
+  echo "Usage: senv [-e | -d] <file>"
 }
 
 options=()
@@ -23,10 +23,6 @@ for arg in "$@"; do
     arguments[${#arguments[*]}]="$arg"
   fi
 done
-
-# detect default ssh identity (~/.ssh/id_rsa)
-# identity=$(ssh-add -l | awk -F ' ' '{print $3}')
-identity="${BATS_TEST_DIRNAME}/id_rsa"
 
 unset encrypt decrypt
 
@@ -51,18 +47,62 @@ for option in "${options[@]}"; do
   esac
 done
 
+# detect default ssh identity (~/.ssh/id_rsa)
+# identity=$(ssh-add -l | awk -F ' ' '{print $3}')
+
+if [ ! -e "$SENV_KEY" ]; then
+  echo "SENV_KEY=$SENV_KEY does not exist" >&2
+  exit 1
+fi
+
 if [ -n "$encrypt" ]; then
-  file="./.env"
+  if [ -n "$arguments" ]; then
+    file="$arguments";
+  else
+    file="./.env";
+  fi
+
   tmppubkey="/tmp/identity.pub.pem"
-  openssl rsa -in $identity -pubout > "$tmppubkey" 2>/dev/null
-  cat $file | openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A
-  echo
+  openssl rsa -in $SENV_KEY -pubout > "$tmppubkey" 2>/dev/null
+
+  if [ -t 0 ]; then
+    if [ ! -e "$file" ]; then
+      usage >&2
+      exit 1
+    fi
+    while read line; do
+      echo $line |  openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
+      echo
+    done < $file
+  else
+    while read line; do
+      echo $line | openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
+      echo
+    done
+  fi
   exit 0
 fi
 
 if [ -n "$decrypt" ]; then
-  file="./.senv"
-  cat $file | openssl base64 -A -d | openssl rsautl -decrypt -inkey $identity
+  if [ -n "$arguments" ]; then
+    file="$arguments";
+  else
+    file="./.senv";
+  fi
+
+  if [ -t 0 ]; then
+    if [ ! -e "$file" ]; then
+      usage >&2
+      exit 1
+    fi
+    while read line; do
+      echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
+    done < $file
+  else
+    while read line; do
+      echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
+    done
+  fi
   exit 0
 fi
 
