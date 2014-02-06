@@ -1,0 +1,42 @@
+#!/bin/sh
+
+if [ "$1" != "find-generic-password" ]; then
+  exit 1
+fi
+
+if [ "$2" = "-ga" ]; then
+  [ -z "$PASSWORD" ] && PASSWORD="secret"
+  [ -n "$DENY" ] && exit 51
+elif [ "$2" = "-a" ]; then
+  unset PASSWORD
+else
+  exit 1
+fi
+
+KEY="$3"
+
+cat <<EOS
+keychain: "$HOME/Library/Keychains/login.keychain"
+class: "genp"
+attributes:
+    0x00000000 <blob>="SSH: $KEY"
+    0x00000000 <blob>=<NULL>
+    "acct"<blob>="$key"
+    "cdat"<timedate>=0x00000000000000000000000000000000  "19691231000000Z\000"
+    "crtr"<uint32>=<NULL>
+    "cusi"<sint32>=<NULL>
+    "desc"<blob>=<NULL>
+    "gena"<blob>=<NULL>
+    "icmt"<blob>=<NULL>
+    "invi"<sint32>=<NULL>
+    "mdat"<timedate>=0x00000000000000000000000000000000  "19691231000000Z\000"
+    "nega"<sint32>=<NULL>
+    "prot"<blob>=<NULL>
+    "scrp"<sint32>=<NULL>
+    "svce"<blob>="SSH"
+    "type"<uint32>=<NULL>
+EOS
+
+if [ -n "$PASSWORD" ]; then
+  echo "password: \"$PASSWORD\"" >&2
+fi

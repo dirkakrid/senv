@@ -157,3 +157,23 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
   [ "$status" -eq 0 ]
   [ "${output}" = "secret" ]
 }
+
+@test "encrypt with osx security helper" {
+  export PATH="${BATS_TEST_DIRNAME}/darwin:$PATH"
+  export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa_pass"
+  export PASSWORD="secret"
+  run senv --encrypt "${BATS_TEST_DIRNAME}/.env"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]: -1}" = "=" ]
+  [ "${lines[1]: -1}" = "=" ]
+}
+
+@test "decrypt with osx security helper" {
+  export PATH="${BATS_TEST_DIRNAME}/darwin:$PATH"
+  export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa_pass"
+  export PASSWORD="secret"
+  run senv --decrypt "${BATS_TEST_DIRNAME}/.senv3"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
+  [ "${lines[1]}" = "SECRET_KEY=YOURSECRETKEYGOESHERE" ]
+}
