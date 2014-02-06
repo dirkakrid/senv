@@ -55,6 +55,8 @@ begin
       rescue Exception
       end
     end
+  else
+    abort optparse.to_s
   end
 rescue OptionParser::InvalidOption => e
   warn "senv: #{e}"

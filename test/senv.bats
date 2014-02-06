@@ -16,6 +16,18 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
   [ "${lines[1]}" = "usage: senv [-e | -d] <file>" ]
 }
 
+@test "invoking senv with file but without encrypt or decrypt prints usage" {
+  run senv ${BATS_TEST_DIRNAME}/.env
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" = "usage: senv [-e | -d] <file>" ]
+}
+
+@test "invoking senv with input but without encrypt or decrypt prints usage" {
+  run eval "cat ${BATS_TEST_DIRNAME}/.env | senv"
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" = "usage: senv [-e | -d] <file>" ]
+}
+
 @test "invoking senv with nonexistent SENV_KEY errors" {
   export SENV_KEY="/tmp/notansshkey"
   run senv -e "${BATS_TEST_DIRNAME}/.env"
