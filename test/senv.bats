@@ -23,18 +23,14 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
 }
 
 @test "encrypt stdin" {
-  output=$(cat "${BATS_TEST_DIRNAME}/.env" | senv --encrypt)
-  status="$?"
-  IFS=$'\n' lines=($output)
+  run eval "cat ${BATS_TEST_DIRNAME}/.env | senv --encrypt"
   [ "$status" -eq 0 ]
   [ "${lines[0]: -1}" = "=" ]
   [ "${lines[1]: -1}" = "=" ]
 }
 
 @test "encrypt stdin with shorthand flag" {
-  output=$(cat "${BATS_TEST_DIRNAME}/.env" | senv -e)
-  status="$?"
-  IFS=$'\n' lines=($output)
+  run eval "cat ${BATS_TEST_DIRNAME}/.env | senv -e"
   [ "$status" -eq 0 ]
   [ "${lines[0]: -1}" = "=" ]
   [ "${lines[1]: -1}" = "=" ]
@@ -56,18 +52,14 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
 }
 
 @test "decrypt stdin" {
-  output=$(cat "${BATS_TEST_DIRNAME}/.senv" | senv --decrypt)
-  status="$?"
-  IFS=$'\n' lines=($output)
+  run eval "cat ${BATS_TEST_DIRNAME}/.senv | senv --decrypt"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
   [ "${lines[1]}" = "SECRET_KEY=YOURSECRETKEYGOESHERE" ]
 }
 
 @test "decrypt stdin with shorthand flag" {
-  output=$(cat "${BATS_TEST_DIRNAME}/.senv" | senv -d)
-  status="$?"
-  IFS=$'\n' lines=($output)
+  run eval "cat ${BATS_TEST_DIRNAME}/.senv | senv -d"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
   [ "${lines[1]}" = "SECRET_KEY=YOURSECRETKEYGOESHERE" ]
@@ -110,8 +102,7 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
 }
 
 @test "encrypt/decrypt stdin" {
-  output=$(echo secret | senv -e | senv -d)
-  status="$?"
+  run eval "echo secret | senv -e | senv -d"
   [ "$status" -eq 0 ]
   [ "${output}" = "secret" ]
 }
