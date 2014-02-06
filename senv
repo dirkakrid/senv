@@ -78,7 +78,7 @@ fi
 
 if [ -n "$encrypt" ]; then
   while read line; do
-    echo $line | openssl rsautl -encrypt -inkey "$SENV_KEY" | openssl base64 -A;
+    echo "$line" | openssl rsautl -encrypt -inkey "$SENV_KEY" | openssl base64 -A;
     echo
   done < $file
 
@@ -86,7 +86,7 @@ if [ -n "$encrypt" ]; then
 
 elif [ -n "$decrypt" ]; then
   while read line; do
-    echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
+    echo "$line" | openssl base64 -A -d | openssl rsautl -decrypt -inkey "$SENV_KEY" 2>/dev/null
   done < $file
 
   exit 0
