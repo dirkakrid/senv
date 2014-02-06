@@ -24,15 +24,17 @@ for arg in "$@"; do
   fi
 done
 
-unset encrypt decrypt
+unset encrypt decrypt file
 
 for option in "${options[@]}"; do
   case "$option" in
   "e" | "encrypt" )
     encrypt="1"
+    file=".env"
     ;;
   "d" | "decrypt" )
     decrypt="1"
+    file=".senv"
     ;;
   "i" | "identity" )
     identity="$OPTARG"
@@ -47,6 +49,10 @@ for option in "${options[@]}"; do
   esac
 done
 
+if [ -e "$arguments" ]; then
+  file="$arguments"
+fi
+
 # detect default ssh identity (~/.ssh/id_rsa)
 # identity=$(ssh-add -l | awk -F ' ' '{print $3}')
 
@@ -56,12 +62,6 @@ if [ ! -e "$SENV_KEY" ]; then
 fi
 
 if [ -n "$encrypt" ]; then
-  if [ -n "$arguments" ]; then
-    file="$arguments";
-  else
-    file="./.env";
-  fi
-
   tmppubkey="/tmp/identity.pub.pem"
   openssl rsa -in $SENV_KEY -pubout > "$tmppubkey" 2>/dev/null
 
@@ -84,12 +84,6 @@ if [ -n "$encrypt" ]; then
 fi
 
 if [ -n "$decrypt" ]; then
-  if [ -n "$arguments" ]; then
-    file="$arguments";
-  else
-    file="./.senv";
-  fi
-
   if [ -t 0 ]; then
     if [ ! -e "$file" ]; then
       usage >&2
