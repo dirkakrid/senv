@@ -77,11 +77,8 @@ if [ ! -e "$SENV_KEY" ]; then
 fi
 
 if [ -n "$encrypt" ]; then
-  tmppubkey="/tmp/identity.pub.pem"
-  openssl rsa -in $SENV_KEY -pubout > "$tmppubkey" 2>/dev/null
-
   while read line; do
-    echo $line | openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
+    echo $line | openssl rsautl -encrypt -inkey "$SENV_KEY" | openssl base64 -A;
     echo
   done < $file
 
