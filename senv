@@ -30,17 +30,14 @@ for option in "${options[@]}"; do
   case "$option" in
   "e" | "encrypt" )
     encrypt="1"
-    file=".env"
+    [ -t 0 ] && file=".env"
     ;;
   "d" | "decrypt" )
     decrypt="1"
-    file=".senv"
+    [ -t 0 ] && file=".senv"
     ;;
   "i" | "identity" )
     identity="$OPTARG"
-    ;;
-  "w" | "write" )
-    write="1"
     ;;
   * )
     echo "senv: invalid option: --$option" >&2
@@ -52,6 +49,22 @@ done
 
 if [ -n "$arguments" ]; then
   file="$arguments"
+fi
+if [ -t 0 ]; then
+  if [ -z "$file" ]; then
+    usage >&2
+    exit 1
+  elif [ ! -e "$file" ]; then
+    echo "senv: $file: No such file or directory" >&2
+    exit 1
+  elif [ ! -f "$file" ]; then
+    echo "senv: $file: Is a directory" >&2
+    exit 1
+  fi
+else
+  if [ -z "$file" ]; then
+    file="/dev/stdin"
+  fi
 fi
 
 if [ -z "$SENV_KEY" ]; then
@@ -67,50 +80,21 @@ if [ -n "$encrypt" ]; then
   tmppubkey="/tmp/identity.pub.pem"
   openssl rsa -in $SENV_KEY -pubout > "$tmppubkey" 2>/dev/null
 
-  if [ -t 0 ]; then
-    if [ ! -e "$file" ]; then
-      echo "senv: $file: No such file or directory" >&2
-      exit 1
-    fi
-    if [ ! -f "$file" ]; then
-      echo "senv: $file: Is a directory" >&2
-      exit 1
-    fi
+  while read line; do
+    echo $line | openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
+    echo
+  done < $file
 
-    while read line; do
-      echo $line |  openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
-      echo
-    done < $file
-  else
-    while read line; do
-      echo $line | openssl rsautl -encrypt -pubin -inkey "$tmppubkey" | openssl base64 -A;
-      echo
-    done
-  fi
   exit 0
-fi
 
-if [ -n "$decrypt" ]; then
-  if [ -t 0 ]; then
-    if [ ! -e "$file" ]; then
-      echo "senv: $file: No such file or directory" >&2
-      exit 1
-    fi
-    if [ ! -f "$file" ]; then
-      echo "senv: $file: Is a directory" >&2
-      exit 1
-    fi
+elif [ -n "$decrypt" ]; then
+  while read line; do
+    echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
+  done < $file
 
-    while read line; do
-      echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
-    done < $file
-  else
-    while read line; do
-      echo $line | openssl base64 -A -d | openssl rsautl -decrypt -inkey $SENV_KEY 2>/dev/null
-    done
-  fi
   exit 0
-fi
 
-usage >&2
-exit 1
+else
+  usage >&2
+  exit 1
+fi
