@@ -51,15 +51,32 @@ if [ ! -e "$SENV_KEY" ]; then
   exit 1
 fi
 
+findpass() {
+  security find-generic-password -ga $SENV_KEY 2>&1 1>/dev/null |
+    head -n1 |
+    cut -d ' ' -f 2 |
+    sed "s/\"//g"
+}
+
+unset passin
+if [ -n "$encrypt" ] || [ -n "$decrypt" ]; then
+  PASS=$(findpass)
+  if [ "$?" -eq 0 ] && [ -n "$PASS" ]; then
+    export PASS
+    passin="-passin env:PASS"
+  fi
+fi
+
 if [ -n "$encrypt" ]; then
   while read line; do
-    echo "$line" | openssl rsautl -encrypt -inkey "$SENV_KEY" | openssl base64 -A;
+    echo "$line" | openssl rsautl -encrypt -inkey "$SENV_KEY" $passin | openssl base64 -A;
     echo
   done < $file
   exit 0
 elif [ -n "$decrypt" ]; then
   while read line; do
-    echo "$line" | openssl base64 -A -d | openssl rsautl -decrypt -inkey "$SENV_KEY" 2>/dev/null
+    echo "$line" | openssl base64 -A -d | openssl rsautl -decrypt -inkey "$SENV_KEY" $passin 2>/dev/null
+    echo
   done < $file
   exit 0
 else
