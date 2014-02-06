@@ -1,5 +1,0 @@
-PATH="${BATS_TEST_DIRNAME}/..:$PATH"
-export PATH
-
-SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
-export SENV_KEY

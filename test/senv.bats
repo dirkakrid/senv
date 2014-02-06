@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
-load test_helper
+export PATH="${BATS_TEST_DIRNAME}/..:$PATH"
+export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
 
 @test "invoking senv without arguments prints usage" {
   run senv
