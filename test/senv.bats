@@ -138,14 +138,12 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
 }
 
 @test "ignores plain test file on decrypt" {
-  cd $BATS_TEST_DIRNAME
   run senv --decrypt "${BATS_TEST_DIRNAME}/.env"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "" ]
 }
 
 @test "ignores invalids lines on decrypt" {
-  cd $BATS_TEST_DIRNAME
   run senv --decrypt "${BATS_TEST_DIRNAME}/.senv2"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
