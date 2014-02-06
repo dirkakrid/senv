@@ -36,9 +36,6 @@ for option in "${options[@]}"; do
     decrypt="1"
     [ -t 0 ] && file=".senv"
     ;;
-  "i" | "identity" )
-    identity="$OPTARG"
-    ;;
   * )
     echo "senv: invalid option: --$option" >&2
     usage >&2
