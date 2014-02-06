@@ -56,13 +56,20 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
   [ "${lines[1]: -1}" = "=" ]
 }
 
-@test "invoking senv with nonexistent file errors" {
+@test "encrypt file even with stdin present" {
+  run eval "echo invalid | senv --encrypt ${BATS_TEST_DIRNAME}/.env"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]: -1}" = "=" ]
+  [ "${lines[1]: -1}" = "=" ]
+}
+
+@test "invoking senv encrypt with nonexistent file errors" {
   run senv --encrypt "${BATS_TEST_DIRNAME}/.notafile"
   [ "$status" -eq 1 ]
   [ "${lines[0]}" = "senv: ${BATS_TEST_DIRNAME}/.notafile: No such file or directory" ]
 }
 
-@test "invoking senv with directory file errors" {
+@test "invoking senv encrypt with directory file errors" {
   run senv --encrypt "${BATS_TEST_DIRNAME}"
   [ "$status" -eq 1 ]
   [ "${lines[0]}" = "senv: ${BATS_TEST_DIRNAME}: Is a directory" ]
@@ -95,6 +102,25 @@ export SENV_KEY="$BATS_TEST_DIRNAME/id_rsa"
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
   [ "${lines[1]}" = "SECRET_KEY=YOURSECRETKEYGOESHERE" ]
+}
+
+@test "decrypt file even with stdin present" {
+  run eval "echo invalid | senv --decrypt ${BATS_TEST_DIRNAME}/.senv"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "S3_BUCKET=YOURS3BUCKET" ]
+  [ "${lines[1]}" = "SECRET_KEY=YOURSECRETKEYGOESHERE" ]
+}
+
+@test "invoking senv decrypt with nonexistent file errors" {
+  run senv --decrypt "${BATS_TEST_DIRNAME}/.notafile"
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" = "senv: ${BATS_TEST_DIRNAME}/.notafile: No such file or directory" ]
+}
+
+@test "invoking senv decrypt with directory file errors" {
+  run senv --decrypt "${BATS_TEST_DIRNAME}"
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" = "senv: ${BATS_TEST_DIRNAME}: Is a directory" ]
 }
 
 @test "decrypt without input errors with no such file" {
