@@ -7,7 +7,7 @@ require 'shellwords'
 
 options = {}
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage: senv [-e | -d] <file>"
+  opts.banner = "usage: senv [-e | -d] <file>"
 
   opts.on("-e", "--encrypt", "Encrypt file or input") do
     options[:encrypt] = true
@@ -25,43 +25,42 @@ end
 
 begin
   optparse.parse!
-rescue OptionParser::InvalidOption
-  abort optparse.to_s
-end
 
-if STDIN.tty? && ARGF.path == "-"
-  if options[:file] && File.exist?(options[:file])
-    input = File.open(options[:file], 'r')
+  if STDIN.tty? && ARGF.path == "-"
+    if options[:file]
+      input = File.open(options[:file], 'r')
+    else
+      abort optparse.to_s
+    end
   else
-    abort optparse.to_s
+    input = ARGF
   end
-else
-  input = ARGF
-end
 
-ENV['SENV_KEY'] ||= `ssh-add -l`.lines.first.split(" ")[2]
+  ENV['SENV_KEY'] ||= `ssh-add -l`.lines.first.split(" ")[2]
 
-if File.exist?(ENV['SENV_KEY'])
   result = `#{Shellwords.join(['security', 'find-generic-password', '-ga', ENV['SENV_KEY']])} 2>&1`
   if $?.success?
     password = result[/^password: "(.*)"$/, 1]
   end
   key = OpenSSL::PKey::RSA.new(File.read(ENV['SENV_KEY']), password)
-else
-  abort "SENV_KEY=#{ENV['SENV_KEY']} does not exist"
-end
 
-if options[:encrypt]
-  input.each_line do |line|
-    puts Base64.strict_encode64(key.public_encrypt(line.chomp))
-  end
-elsif options[:decrypt]
-  input.each_line do |line|
-    begin
-      puts key.private_decrypt(Base64.strict_decode64(line.chomp))
-    rescue Exception
+  if options[:encrypt]
+    input.each_line do |line|
+      puts Base64.strict_encode64(key.public_encrypt(line.chomp))
+    end
+  elsif options[:decrypt]
+    input.each_line do |line|
+      begin
+        puts key.private_decrypt(Base64.strict_decode64(line.chomp))
+      rescue Exception
+      end
     end
   end
-else
+rescue OptionParser::InvalidOption => e
+  warn "senv: #{e}"
   abort optparse.to_s
+rescue Errno::ENOENT => e
+  abort "senv: #{e.message.split(' - ')[1]}: No such file or directory"
+rescue Errno::EISDIR => e
+  abort "senv: #{e.message.split(' - ')[1]}: Is a directory"
 end
