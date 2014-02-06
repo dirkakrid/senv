@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# set -e
 
 usage() {
   echo "usage: senv [-e | -d] <file>"
